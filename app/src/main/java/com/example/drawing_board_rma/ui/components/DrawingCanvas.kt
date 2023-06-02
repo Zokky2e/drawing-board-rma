@@ -2,16 +2,17 @@ package com.example.drawing_board_rma.ui.components
 
 import android.view.MotionEvent
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInteropFilter
-import com.example.drawing_board_rma.ui.theme.Pink40
-import com.example.drawing_board_rma.ui.theme.Pink80
+import com.example.drawing_board_rma.ui.theme.Primary
 
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -20,7 +21,7 @@ fun DrawingCanvas(
     action: MutableState<Pair<Boolean, Pair<Float, Float>>?>,
     path: Path,
     collectList: MutableList<Pair<Boolean, Pair<Float, Float>>>,
-modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier.background(Color.White),
 ) {
 
     Canvas(modifier = modifier
@@ -51,7 +52,7 @@ modifier: Modifier = Modifier,
         action.value?.let {
             drawPath(
                 path = collectList.toPath(),
-                color = Pink80,
+                color = Primary,
                 alpha = 1f,
                 style = Stroke(10f)
             )
