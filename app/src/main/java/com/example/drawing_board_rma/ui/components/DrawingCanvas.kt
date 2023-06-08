@@ -12,63 +12,60 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInteropFilter
-import com.example.drawing_board_rma.ui.theme.Primary
+import com.example.drawing_board_rma.ui.theme.EraserColor
 
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun DrawingCanvas(
-    action: MutableState<Pair<Boolean, Pair<Float, Float>>?>,
-    path: Path,
-    collectList: MutableList<Pair<Boolean, Pair<Float, Float>>>,
-    modifier: Modifier = Modifier.background(Color.White),
+    action: MutableState<Pair<Boolean,Pair<Float,Float>>?>,
+    collectList: MutableList<DrawItem>,
+    color: Color,
+    drawMode: DrawMode,
+    brushStrokeWidth: Float,
+    modifier: Modifier = Modifier,
 ) {
-
-    Canvas(modifier = modifier
-        .fillMaxSize()
-        .pointerInteropFilter {
-        when (it.action) {
-            MotionEvent.ACTION_DOWN -> {
-                action.value = Pair(true, Pair(it.x, it.y))
-                path.moveTo(it.x, it.y)
-                collectList.add(Pair(true, Pair(it.x, it.y)))
-            }
-
-            MotionEvent.ACTION_MOVE -> {
-                action.value = Pair(false, Pair(it.x, it.y))
-                path.lineTo(it.x, it.y)
-                collectList.add(Pair(false, Pair(it.x, it.y)))
-            }
-
-            MotionEvent.ACTION_UP -> {
-
-            }
-
-            else -> false
-
-        }
-        true
-    }) {
-        action.value?.let {
-            drawPath(
-                path = collectList.toPath(),
-                color = Primary,
-                alpha = 1f,
-                style = Stroke(10f)
-            )
-        }
-    }
-}
-
-fun MutableList<Pair<Boolean, Pair<Float, Float>>>.toPath(): Path {
     val path = Path()
-    forEach {
-        if(it.first) {
-            path.moveTo(it.second.first, it.second.second)
-        } else {
-            path.lineTo(it.second.first, it.second.second)
+    Canvas(modifier = modifier
+        .fillMaxSize().background(EraserColor)
+        .pointerInteropFilter {
+            when (it.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    action.value = Pair(true, Pair(it.x,it.y))
+                    path.moveTo(it.x, it.y)
+                }
+
+                MotionEvent.ACTION_MOVE -> {
+                    action.value =Pair(false, Pair(it.x,it.y))
+                    path.lineTo(it.x, it.y)
+                }
+
+                MotionEvent.ACTION_UP -> {
+                    collectList.add(DrawItem(
+                        path = path,
+                        eraseMode = drawMode == DrawMode.Erase,
+                        color = color,
+                        strokeWidth = brushStrokeWidth
+                    ))
+                }
+
+                else -> false
+
+            }
+            true
+        }) {
+
+        action.value = Pair(true, Pair(0f,0f))
+        action.value.let {
+            collectList.forEach { item ->
+                drawPath(
+                    path = item.path,
+                    color = item.color,
+                    alpha = 1f,
+                    style = Stroke(item.strokeWidth)
+                )
+            }
+
         }
     }
-
-    return path
 }
