@@ -1,5 +1,7 @@
 package com.example.drawing_board_rma
 
+import AuthViewModel
+import FirebaseAuthManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -32,6 +34,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Create
 import androidx.compose.material.icons.rounded.List
 import androidx.compose.material.icons.rounded.Person
+import com.example.drawing_board_rma.ui.ProfileScreen
+import com.example.drawing_board_rma.ui.components.DrawItem
 
 enum class CurrentScreen(@StringRes val title: Int) {
     Start(title = R.string.drawing),
@@ -46,7 +50,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            var authViewModel = AuthViewModel(FirebaseAuthManager())
             val navController = rememberNavController()
+            val paths = mutableListOf<DrawItem>()
             DrawingboardrmaTheme {
                 Box(
                     modifier = Modifier
@@ -121,17 +127,17 @@ class MainActivity : ComponentActivity() {
                         ) {
                             composable(route = CurrentScreen.Start.name) {
                                 DrawingCanvasScreen(
+                                    paths = paths,
+                                    authViewModel,
                                     modifier = Modifier
                                         .fillMaxSize()
                                 )
                             }
                             composable(route = CurrentScreen.Profile.name) {
-                                Column {
-                                    Text(text = "Profile")
-                                }
+                                ProfileScreen(authViewModel)
                             }
                             composable(route = CurrentScreen.Gallery.name) {
-                                GalleryScreen()
+                                GalleryScreen(authViewModel)
                             }
                         }
                     }

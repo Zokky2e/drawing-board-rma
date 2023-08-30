@@ -1,11 +1,25 @@
 package com.example.drawing_board_rma.ui.components
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Call
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Create
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Place
+import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -15,13 +29,24 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import com.example.drawing_board_rma.R
+import com.example.drawing_board_rma.ui.theme.ButtonBackground
+import com.example.drawing_board_rma.ui.theme.ButtonText
+import com.example.drawing_board_rma.ui.theme.Primary
 
 @Composable
 fun DrawingMenu(
     collectList: MutableList<DrawItem>,
     onClearClicked: () -> Unit,
+    onSaveClicked: () -> Unit,
     onDrawingEnabled: (Boolean) -> Unit,
+    onTurnOnColorPicker: (Boolean) -> Unit,
+    isColorPickerOn: Boolean,
+    brushColor: Color,
+    changeBrushColor: (Color) -> Unit,
     onErasingEnabled: (Boolean) -> Unit,
     brushStrokeWidth: Float,
     eraserStrokeWidth: Float,
@@ -37,28 +62,70 @@ fun DrawingMenu(
     val drawButtonText = if (isDrawModeSelected) "Stop Draw" else "Draw"
     val eraseButtonText = if (isEraseModeSelected) "Stop Erase" else "Erase"
 
-    Row(verticalAlignment = Alignment.CenterVertically,
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceEvenly,
         modifier = Modifier
             .fillMaxWidth()
-            .height(64.dp)) {
-        if(!isEraseModeSelected) {
+            .height(64.dp)
+    ) {
+        if (!isEraseModeSelected) {
             Row(
-                modifier =  if (isDrawModeSelected)
-                            Modifier.fillMaxWidth()
-                                else Modifier,
-                horizontalArrangement = Arrangement.SpaceEvenly
+                modifier = if (isDrawModeSelected)
+                    Modifier.fillMaxWidth()
+                else Modifier,
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Button(onClick = {
-                    isDrawModeSelected = !isDrawModeSelected
-                    isEraseModeSelected = false
-                },
-                    modifier = if (isDrawModeSelected) Modifier.padding(end = 16.dp) else Modifier
+                val selectedModifier =
+                    if (isDrawModeSelected) {
+
+                         Modifier.padding(start = 16.dp)
+                    } else {
+                        Modifier
+                    }
+                Box(
+                    modifier = selectedModifier
+                        .size(32.dp)
+                        .background(ButtonBackground)
+                        .clickable {
+                            isDrawModeSelected = !isDrawModeSelected
+                            isEraseModeSelected = false
+                        },
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text(text = drawButtonText)
+                    if (isDrawModeSelected) {
+                        Icon(Icons.Rounded.Close, contentDescription = "Draw", tint = ButtonText)
+                    } else {
+                        Icon(Icons.Rounded.Create, contentDescription = "Draw", tint = ButtonText)
+                    }
                 }
                 var sliderPosition by remember { mutableStateOf(brushStrokeWidth) }
+                var resetModifier = Modifier
+                    .aspectRatio(1f)
+                    .size(16.dp)
+
                 if (isDrawModeSelected) {
+                    Box(
+                        modifier = resetModifier
+                            .clickable { changeBrushColor(Primary) },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        androidx.compose.material.Icon(
+                            Icons.Rounded.Refresh,
+                            contentDescription = "Draw",
+                        )
+                    }
+                    Button(
+                        onClick = {
+                            onTurnOnColorPicker(!isColorPickerOn)
+                        }, modifier = Modifier.padding(end = 8.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = brushColor
+                        )
+                    ) {
+
+                    }
                     Slider(
                         value = sliderPosition,
                         onValueChange = { sliderPosition = it },
@@ -72,15 +139,36 @@ fun DrawingMenu(
             }
         }
 
-        if(!isDrawModeSelected){
-            Row(modifier = if (isEraseModeSelected) Modifier.fillMaxWidth() else Modifier) {
-                Button(onClick = {
-                    isEraseModeSelected = !isEraseModeSelected
-                    isDrawModeSelected = false
-                }) {
-                    Text(text = eraseButtonText)
-                }
+        if (!isDrawModeSelected) {
+            Row(
+                modifier = if (isEraseModeSelected) Modifier.fillMaxWidth() else Modifier,
 
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                val selectedModifier =
+                    if (isEraseModeSelected) {
+
+                        Modifier.padding(start = 16.dp)
+                    } else {
+                        Modifier
+                    }
+                Box(
+                    modifier = selectedModifier
+                        .size(32.dp)
+                        .background(ButtonBackground)
+                        .clickable {
+                            isEraseModeSelected = !isEraseModeSelected
+                            isDrawModeSelected = false
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (isEraseModeSelected) {
+                        Icon(Icons.Rounded.Close, contentDescription = "Erase", tint = ButtonText)
+                    } else {
+                        Icon(painter = painterResource(id = R.drawable.eraser), contentDescription = "Erase", tint = ButtonText)
+                    }
+                }
                 var eraserSliderPosition by remember { mutableStateOf(eraserStrokeWidth) }
                 if (isEraseModeSelected) {
                     Slider(
@@ -91,20 +179,36 @@ fun DrawingMenu(
                             onEraserStrokeWidthChanged(eraserSliderPosition)
                         },
                         steps = 5,
+                        modifier = Modifier
+                            .padding(start = 16.dp)
                     )
                 }
             }
         }
-        if(!isDrawModeSelected && !isEraseModeSelected) {
-            Button(onClick = {
-                onClearClicked()
-            }) {
-                Text(text = "Clear")
+        if (!isDrawModeSelected && !isEraseModeSelected) {
+            Box(
+                modifier = Modifier
+                    .padding(start = 16.dp)
+                    .size(32.dp)
+                    .background(ButtonBackground)
+                    .clickable {
+                        onClearClicked()
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Rounded.Delete, contentDescription = "Erase", tint = ButtonText)
             }
-            Button(onClick = {
-                /*TODO*/
-            }, modifier = Modifier.padding(end = 16.dp)) {
-                Text(text = "Save")
+            Box(
+                modifier = Modifier
+                    .padding(start = 16.dp)
+                    .size(32.dp)
+                    .background(ButtonBackground)
+                    .clickable {
+                        onSaveClicked()
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(painter = painterResource(id = R.drawable.save), contentDescription = "Erase", tint = ButtonText)
             }
         }
     }
