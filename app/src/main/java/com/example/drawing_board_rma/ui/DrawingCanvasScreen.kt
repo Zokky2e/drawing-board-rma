@@ -1,17 +1,23 @@
 package com.example.drawing_board_rma.ui
 
 import AuthViewModel
-import FirebaseAuthManager
 import android.graphics.Bitmap
-import android.graphics.Color
-import android.graphics.Paint
+import android.os.Build
+import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,8 +28,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Canvas
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import com.example.drawing_board_rma.ui.components.DrawItem
@@ -37,25 +44,28 @@ import com.example.drawing_board_rma.ui.theme.Secondary
 import com.github.skydoves.colorpicker.compose.ColorEnvelope
 import com.github.skydoves.colorpicker.compose.HsvColorPicker
 import com.github.skydoves.colorpicker.compose.rememberColorPickerController
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.ktx.Firebase
-import com.google.firebase.ktx.app
+import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
-import com.google.firebase.storage.ktx.storage
 import com.smarttoolfactory.screenshot.rememberScreenshotState
 import java.io.ByteArrayOutputStream
-import kotlin.random.Random
+import java.time.LocalDateTime
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun DrawingCanvasScreen(
     paths: MutableList<DrawItem>,
     authViewModel: AuthViewModel,
+    storage: FirebaseStorage,
     modifier: Modifier
 ) {
+    var context = LocalContext.current
     val isUserSignedIn by authViewModel.isUserSignedIn.collectAsState()
     val cpController = rememberColorPickerController()
     var isColorPickerOn by remember {
+        mutableStateOf(false)
+    }
+    var isConfirmSavePopup by remember {
         mutableStateOf(false)
     }
     val paths = remember { paths }
@@ -77,6 +87,31 @@ fun DrawingCanvasScreen(
         mutableStateOf(5f)
     }
     var screenshotState = rememberScreenshotState()
+    
+    var confirmSaveClicked = {
+
+        if (isUserSignedIn) {
+            screenshotState.imageBitmap?.let {
+                val bitmap = it.asAndroidBitmap()
+                val stream = ByteArrayOutputStream()
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+                val data = stream.toByteArray()
+                val imageStorage: StorageReference = storage.reference
+                val date = LocalDateTime.now().toString()
+                val imageRef = imageStorage.child(authViewModel.auth.currentUser?.uid + "/"+ date +".png").putBytes(data)
+                    .addOnCompleteListener {
+                        var toast = Toast(context)
+                        toast.setText("Saved to cloud!")
+                        toast.show()
+                    }
+                    .addOnFailureListener { e ->
+                        var toast = Toast(context)
+                        toast.setText("Failed save to cloud!")
+                        toast.show()
+                    }
+            }
+        }
+    }
     Column(modifier = Modifier.background(color = Secondary)) {
         DrawingMenu(
             collectList = paths,
@@ -97,24 +132,8 @@ fun DrawingCanvasScreen(
                 paths.clear()
             },
             onSaveClicked = {
-                if (isUserSignedIn) {
-                    screenshotState.capture()
-                    screenshotState.imageBitmap?.let {
-                        val bitmap = it.asAndroidBitmap()
-                        val stream = ByteArrayOutputStream()
-                        bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
-                        val data = stream.toByteArray()
-                        val storage = Firebase.storage
-                        val imageStorage: StorageReference = storage.reference
-                        val imageRef = imageStorage.child(authViewModel.auth.currentUser?.uid + "/image"+ Random.nextInt().toString()+".png").putBytes(data)
-                            .addOnSuccessListener {
-                                var result = it
-                            }
-                            .addOnFailureListener { e ->
-                                var error = e
-                            }
-                    }
-                }
+                screenshotState.capture()
+                isConfirmSavePopup = true
             },
             onTurnOnColorPicker = { value ->
                 isColorPickerOn = value
@@ -137,6 +156,52 @@ fun DrawingCanvasScreen(
         } else {
             DrawMode.Touch
         }
+        if (isConfirmSavePopup) {
+            val popupAlignment = Alignment.Center
+            Popup(
+                alignment = popupAlignment,
+                onDismissRequest = {
+                    isColorPickerOn = false
+                }
+            ) {
+                Column(
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .width(300.dp)
+                        .height(200.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Background)
+                        .padding(horizontal = 16.dp)
+                ) {
+                    Text(text = "Do you want to save this drawing?")
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier
+                        .fillMaxWidth()
+                    ) {
+                        Button(
+                            onClick = {
+                                isConfirmSavePopup = false
+                            }
+                        ) {
+                            Text("Cancel")
+                        }
+
+                        Button(
+                            onClick = {
+                                confirmSaveClicked()
+                                isConfirmSavePopup = false
+                            }
+                        ) {
+                            Text("Confirm")
+                        }
+                    }
+                }
+            }
+        }
+        
         if (isColorPickerOn) {
             val popupAlignment = Alignment.Center
 

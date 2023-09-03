@@ -208,7 +208,7 @@ fun DrawingMenu(
                     },
                 contentAlignment = Alignment.Center
             ) {
-                Icon(painter = painterResource(id = R.drawable.save), contentDescription = "Erase", tint = ButtonText)
+                Icon(painter = painterResource(id = R.drawable.save), contentDescription = "Save", tint = ButtonText)
             }
         }
     }
