@@ -1,4 +1,3 @@
-
 import android.content.ContentResolver
 import android.content.ContentValues
 import android.content.Context
@@ -25,20 +24,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import coil.ImageLoader
-import coil.annotation.ExperimentalCoilApi
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.drawing_board_rma.R
 import com.example.drawing_board_rma.ui.theme.ButtonText
 import com.google.firebase.storage.FirebaseStorage
-import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
 import java.time.LocalDateTime
 
 
 @RequiresApi(Build.VERSION_CODES.O)
-@OptIn(ExperimentalCoilApi::class)
 @Composable
 fun GalleryScreen(
     authViewModel: AuthViewModel,
@@ -77,17 +71,23 @@ fun GalleryScreen(
                                         imageUrl,
                                         ImageLoader(context),
                                         onSuccess = { bitmap ->
-                                            val savedFile = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-                                                ?.let {
-                                                    val date = LocalDateTime.now().toString() +".png"
-                                                    val savedUri = saveBitmapToMediaStore(context.contentResolver, bitmap, date)
-                                                    if (savedUri != null) {
-                                                    } else {
-                                                        val toast = Toast(context)
-                                                        toast.setText("Drawing saving failed!")
-                                                        toast.show()
+                                            val savedFile =
+                                                context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+                                                    ?.let {
+                                                        val date =
+                                                            LocalDateTime.now().toString() + ".png"
+                                                        val savedUri = saveBitmapToMediaStore(
+                                                            context.contentResolver,
+                                                            bitmap,
+                                                            date
+                                                        )
+                                                        if (savedUri != null) {
+                                                        } else {
+                                                            val toast = Toast(context)
+                                                            toast.setText("Drawing saving failed!")
+                                                            toast.show()
+                                                        }
                                                     }
-                                                }
                                             if (savedFile != null) {
                                                 val toast = Toast(context)
                                                 toast.setText("Drawing saved to device!")
@@ -103,7 +103,8 @@ fun GalleryScreen(
                                             toast.setText("Drawing saving failed!")
                                             toast.show()
                                         },
-                                        context)
+                                        context
+                                    )
                                 },
                                 modifier = Modifier
                                     .align(Alignment.BottomEnd)
@@ -153,13 +154,11 @@ fun saveBitmapToMediaStore(
             }
         }
     } catch (e: Exception) {
-        // Handle any exceptions here
         return null
     }
 
     return uri
 }
-
 
 fun downloadImage(
     url: String,
@@ -180,18 +179,5 @@ fun downloadImage(
         }
         .build()
 
-    val disposable = imageLoader.enqueue(request)
-}
-
-fun saveBitmapToFile(bitmap: Bitmap, directory: File, filename: String): File? {
-    val file = File(directory, filename)
-    try {
-        val stream = FileOutputStream(file)
-        bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
-        stream.close()
-        return file
-    } catch (e: IOException) {
-        e.printStackTrace()
-        return null
-    }
+    imageLoader.enqueue(request)
 }

@@ -87,8 +87,8 @@ fun DrawingCanvasScreen(
         mutableStateOf(5f)
     }
     var screenshotState = rememberScreenshotState()
-    
-    var confirmSaveClicked = {
+
+    val confirmSaveClicked = {
 
         if (isUserSignedIn) {
             screenshotState.imageBitmap?.let {
@@ -98,23 +98,24 @@ fun DrawingCanvasScreen(
                 val data = stream.toByteArray()
                 val imageStorage: StorageReference = storage.reference
                 val date = LocalDateTime.now().toString()
-                val imageRef = imageStorage.child(authViewModel.auth.currentUser?.uid + "/"+ date +".png").putBytes(data)
-                    .addOnCompleteListener {
-                        var toast = Toast(context)
-                        toast.setText("Saved to cloud!")
-                        toast.show()
-                    }
-                    .addOnFailureListener { e ->
-                        var toast = Toast(context)
-                        toast.setText("Failed save to cloud!")
-                        toast.show()
-                    }
+                val imageRef =
+                    imageStorage.child(authViewModel.auth.currentUser?.uid + "/" + date + ".png")
+                        .putBytes(data)
+                        .addOnCompleteListener {
+                            val toast = Toast(context)
+                            toast.setText("Saved to cloud!")
+                            toast.show()
+                        }
+                        .addOnFailureListener { e ->
+                            val toast = Toast(context)
+                            toast.setText("Failed save to cloud!")
+                            toast.show()
+                        }
             }
         }
     }
     Column(modifier = Modifier.background(color = Secondary)) {
         DrawingMenu(
-            collectList = paths,
             onDrawingEnabled = { value ->
                 isDrawMode = value
             }, onErasingEnabled = { value ->
@@ -130,6 +131,9 @@ fun DrawingCanvasScreen(
             },
             onClearClicked = {
                 paths.clear()
+                val toast = Toast(context)
+                toast.setText("Whiteboard cleared!")
+                toast.show()
             },
             onSaveClicked = {
                 screenshotState.capture()
@@ -179,7 +183,7 @@ fun DrawingCanvasScreen(
                     Row(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         modifier = Modifier
-                        .fillMaxWidth()
+                            .fillMaxWidth()
                     ) {
                         Button(
                             onClick = {
@@ -201,7 +205,7 @@ fun DrawingCanvasScreen(
                 }
             }
         }
-        
+
         if (isColorPickerOn) {
             val popupAlignment = Alignment.Center
 
@@ -211,10 +215,12 @@ fun DrawingCanvasScreen(
                     isColorPickerOn = false
                 }
             ) {
-                Box(modifier = Modifier
-                    .size(400.dp)
-                    .background(Background)
-                    .padding(16.dp), contentAlignment = popupAlignment) {
+                Box(
+                    modifier = Modifier
+                        .size(400.dp)
+                        .background(Background)
+                        .padding(16.dp), contentAlignment = popupAlignment
+                ) {
                     Column(modifier = Modifier.fillMaxSize()) {
                         Button(
                             onClick = {

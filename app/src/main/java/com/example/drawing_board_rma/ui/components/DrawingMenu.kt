@@ -11,17 +11,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Call
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Create
 import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.rounded.Place
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Slider
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,7 +36,6 @@ import com.example.drawing_board_rma.ui.theme.Primary
 
 @Composable
 fun DrawingMenu(
-    collectList: MutableList<DrawItem>,
     onClearClicked: () -> Unit,
     onSaveClicked: () -> Unit,
     onDrawingEnabled: (Boolean) -> Unit,
@@ -59,9 +55,6 @@ fun DrawingMenu(
     onDrawingEnabled(isDrawModeSelected)
     onErasingEnabled(isEraseModeSelected)
 
-    val drawButtonText = if (isDrawModeSelected) "Stop Draw" else "Draw"
-    val eraseButtonText = if (isEraseModeSelected) "Stop Erase" else "Erase"
-
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceEvenly,
@@ -80,7 +73,7 @@ fun DrawingMenu(
                 val selectedModifier =
                     if (isDrawModeSelected) {
 
-                         Modifier.padding(start = 16.dp)
+                        Modifier.padding(start = 16.dp)
                     } else {
                         Modifier
                     }
@@ -166,7 +159,11 @@ fun DrawingMenu(
                     if (isEraseModeSelected) {
                         Icon(Icons.Rounded.Close, contentDescription = "Erase", tint = ButtonText)
                     } else {
-                        Icon(painter = painterResource(id = R.drawable.eraser), contentDescription = "Erase", tint = ButtonText)
+                        Icon(
+                            painter = painterResource(id = R.drawable.eraser),
+                            contentDescription = "Erase",
+                            tint = ButtonText
+                        )
                     }
                 }
                 var eraserSliderPosition by remember { mutableStateOf(eraserStrokeWidth) }
@@ -208,7 +205,11 @@ fun DrawingMenu(
                     },
                 contentAlignment = Alignment.Center
             ) {
-                Icon(painter = painterResource(id = R.drawable.save), contentDescription = "Save", tint = ButtonText)
+                Icon(
+                    painter = painterResource(id = R.drawable.save),
+                    contentDescription = "Save",
+                    tint = ButtonText
+                )
             }
         }
     }

@@ -1,7 +1,6 @@
 package com.example.drawing_board_rma.ui
 
 import AuthViewModel
-import FirebaseAuthManager
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,7 +26,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.withContext
 
 
 @Composable
@@ -44,20 +42,24 @@ fun ProfileScreen(
     var errorMessage by remember { mutableStateOf("") }
     if (isUserSignedIn) {
         email = authViewModel.auth.currentUser?.email.toString()
-        Column(modifier = Modifier
-            .fillMaxSize()
-            .padding(vertical = 40.dp),
-            horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(vertical = 40.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Text(text = "Email")
             Text(text = email)
-            Button(onClick = {
-                authViewModel.auth.signOut()
-                authViewModel.checkUserSignIn()
-                email = ""
+            Button(
+                onClick = {
+                    authViewModel.auth.signOut()
+                    authViewModel.checkUserSignIn()
+                    email = ""
                 },
-                modifier = Modifier.padding(16.dp)) {
+                modifier = Modifier.padding(16.dp)
+            ) {
                 Text(text = "Logout")
-                
+
             }
         }
     } else {
@@ -73,8 +75,24 @@ fun ProfileScreen(
                     .padding(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                SliderButton("Login", isLoginModule) { isLoginModule = true }
-                SliderButton("Register", !isLoginModule) { isLoginModule = false }
+                SliderButton("Login", isLoginModule) {
+                    if (!isLoginModule) {
+                        isLoginModule = true
+                        errorMessage = ""
+                        email = ""
+                        password = ""
+                        repeatPassword = ""
+                    }
+                }
+                SliderButton("Register", !isLoginModule) {
+                    if (isLoginModule) {
+                        isLoginModule = false
+                        errorMessage = ""
+                        email = ""
+                        password = ""
+                        repeatPassword = ""
+                    }
+                }
             }
             Text(
                 text = if (isLoginModule) "Login" else "Register",
@@ -91,8 +109,6 @@ fun ProfileScreen(
                         .padding(16.dp)
                         .height(60.dp)
                 )
-
-                // Password field
                 TextField(
                     value = password,
                     onValueChange = { password = it },
@@ -103,7 +119,6 @@ fun ProfileScreen(
                         .height(60.dp)
                 )
                 if (!isLoginModule) {
-                    // Password field
                     TextField(
                         value = repeatPassword,
                         onValueChange = { repeatPassword = it },
@@ -169,7 +184,12 @@ fun ProfileScreen(
     }
 }
 
-fun validateUserInfo(isLogin: Boolean, email: String, password: String, repeatPassword: String): Boolean {
+fun validateUserInfo(
+    isLogin: Boolean,
+    email: String,
+    password: String,
+    repeatPassword: String
+): Boolean {
     if (isLogin) {
         if (email.isEmpty() || password.isEmpty()) {
             return false
@@ -194,9 +214,9 @@ fun SliderButton(text: String, isSelected: Boolean, onClick: () -> Unit) {
     Button(
         onClick = onClick,
         modifier = Modifier
-            .width(150.dp) // Adjust the width as needed
-            .height(40.dp), // Adjust the height as needed
-        shape = RoundedCornerShape(20.dp), // Adjust the corner radius as needed
+            .width(150.dp)
+            .height(40.dp),
+        shape = RoundedCornerShape(20.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = backgroundColor,
             contentColor = contentColor

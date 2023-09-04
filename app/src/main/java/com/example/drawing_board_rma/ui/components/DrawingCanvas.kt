@@ -8,11 +8,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.CanvasDrawScope
-import androidx.compose.ui.graphics.drawscope.DrawContext
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInteropFilter
 import com.example.drawing_board_rma.ui.theme.EraserColor
@@ -23,7 +20,7 @@ import com.smarttoolfactory.screenshot.ScreenshotState
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun DrawingCanvas(
-    action: MutableState<Pair<Boolean,Pair<Float,Float>>?>,
+    action: MutableState<Pair<Boolean, Pair<Float, Float>>?>,
     collectList: MutableList<DrawItem>,
     screenshotState: ScreenshotState,
     color: Color,
@@ -34,26 +31,29 @@ fun DrawingCanvas(
     val path = Path()
     ScreenshotBox(screenshotState = screenshotState) {
         Canvas(modifier = modifier
-            .fillMaxSize().background(EraserColor)
+            .fillMaxSize()
+            .background(EraserColor)
             .pointerInteropFilter {
                 when (it.action) {
                     MotionEvent.ACTION_DOWN -> {
-                        action.value = Pair(true, Pair(it.x,it.y))
+                        action.value = Pair(true, Pair(it.x, it.y))
                         path.moveTo(it.x, it.y)
                     }
 
                     MotionEvent.ACTION_MOVE -> {
-                        action.value =Pair(false, Pair(it.x,it.y))
+                        action.value = Pair(false, Pair(it.x, it.y))
                         path.lineTo(it.x, it.y)
                     }
 
                     MotionEvent.ACTION_UP -> {
-                        collectList.add(DrawItem(
-                            path = path,
-                            eraseMode = drawMode == DrawMode.Erase,
-                            color = color,
-                            strokeWidth = brushStrokeWidth
-                        ))
+                        collectList.add(
+                            DrawItem(
+                                path = path,
+                                eraseMode = drawMode == DrawMode.Erase,
+                                color = color,
+                                strokeWidth = brushStrokeWidth
+                            )
+                        )
                     }
 
                     else -> false
@@ -61,7 +61,7 @@ fun DrawingCanvas(
                 }
                 true
             }) {
-            action.value = Pair(true, Pair(0f,0f))
+            action.value = Pair(true, Pair(0f, 0f))
             action.value.let {
                 collectList.forEach { item ->
                     drawPath(
