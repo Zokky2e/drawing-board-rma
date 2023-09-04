@@ -147,6 +147,12 @@ class MainActivity : ComponentActivity() {
                                     paths = paths,
                                     authViewModel,
                                     storage,
+                                    handleUserNotLoggedIn = {
+                                        if (authViewModel.auth.currentUser == null) {
+                                            currentScreen = CurrentScreen.Profile
+                                            navController.navigate(currentScreen.name)
+                                        }
+                                    },
                                     modifier = Modifier
                                         .fillMaxSize()
                                 )

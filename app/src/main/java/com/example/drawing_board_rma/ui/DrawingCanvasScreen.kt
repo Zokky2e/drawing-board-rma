@@ -57,6 +57,7 @@ fun DrawingCanvasScreen(
     paths: MutableList<DrawItem>,
     authViewModel: AuthViewModel,
     storage: FirebaseStorage,
+    handleUserNotLoggedIn: () -> Unit,
     modifier: Modifier
 ) {
     var context = LocalContext.current
@@ -136,8 +137,12 @@ fun DrawingCanvasScreen(
                 toast.show()
             },
             onSaveClicked = {
-                screenshotState.capture()
-                isConfirmSavePopup = true
+                if (authViewModel.auth.currentUser != null) {
+                    screenshotState.capture()
+                    isConfirmSavePopup = true
+                } else {
+                    handleUserNotLoggedIn()
+                }
             },
             onTurnOnColorPicker = { value ->
                 isColorPickerOn = value
