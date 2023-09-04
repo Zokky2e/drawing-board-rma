@@ -165,8 +165,9 @@ class MainActivity : ComponentActivity() {
                                     authViewModel.auth.uid?.let {
                                         galleryViewModel.fetchImagesFromStorage(
                                             it
-                                        )
-                                        GalleryScreen(authViewModel, storage, galleryViewModel)
+                                        ).let {
+                                            GalleryScreen(authViewModel, storage, galleryViewModel)
+                                        }
                                     }
                                 }
                             }
